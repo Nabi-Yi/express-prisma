@@ -20,7 +20,7 @@ model User {
   nickname String   @unique @db.VarChar(12)
   email    String   @db.VarChar(30)
   password String?  @db.Text //Oauth로그인 때문에 nullable
-  provider PROVIDER
+  provider PROVIDER @default(LOCAL)
   agree    Boolean  @db.Boolean
 
   posts Post[] // "1":n
