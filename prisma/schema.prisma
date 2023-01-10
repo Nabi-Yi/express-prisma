@@ -10,3 +10,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//field type attribue(db)
+//Varchar 일반적, char 30자리 고정(여백을 공백으로 채움)
+// ? => nullable
+// db타입은 없어도 작동은 하지만..?
+
+model User {
+  user_id  Int      @id @default(autoincrement()) //pk
+  nickname String   @unique @db.VarChar(12)
+  email    String   @db.VarChar(30)
+  password String?  @db.Text //Oauth로그인 때문에 nullable
+  provider PROVIDER
+  agree    Boolean  @db.Boolean
+
+  posts Post[] // "1":n
+}
+
+enum PROVIDER {
+  LOCAL
+  KAKAO
+  NAVER
+}
+
+model Post {
+  post_id    Int      @id @default(autoincrement())
+  content    String   @db.VarChar(255)
+  thumbnail  String   @db.Text
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  author_id  Int
+
+  author User @relation(fields: [author_id], references: [user_id], onDelete: Cascade) //fk
+}
