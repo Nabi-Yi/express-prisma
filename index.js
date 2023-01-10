@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const {PrismaClient} = require("@prisma/client")
+const {userResponse} = require("./selectUser");
 
 const prisma = new PrismaClient();
 app.use(express.json());
@@ -15,6 +16,7 @@ app.get("/", async (req, res) => {
                 orderBy: {
                     user_id: 'desc',
                 },
+                select: userResponse,
             }),
             prisma.user.count(),
         ]);
@@ -24,6 +26,20 @@ app.get("/", async (req, res) => {
     }
 });
 
+app.get("/:id", async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                user_id: Number(req.params.id),
+            },
+            select : userResponse,
+        });
+        // delete user.password;
+        return res.status(200).json(user);
+    } catch (error) {
+        return res.status(500).json({error: "internal server error"});
+    }
+});
 app.post("/", async (req, res) => {
     try {
         const newUser = await prisma.user.create({
