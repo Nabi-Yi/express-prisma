@@ -25,6 +25,7 @@ model User {
   agree    Boolean  @db.Boolean
 
   posts Post[] // "1":n
+  Like  Like[]
 }
 
 enum PROVIDER {
@@ -41,5 +42,16 @@ model Post {
   updated_at DateTime @updatedAt
   author_id  Int
 
-  author User @relation(fields: [author_id], references: [user_id], onDelete: Cascade) //fk
+  author User   @relation(fields: [author_id], references: [user_id], onDelete: Cascade) //fk
+  Like   Like[]
+}
+
+model Like {
+  user_id Int
+  post_id Int
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  post Post @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+
+  @@id([user_id, post_id])
 }
