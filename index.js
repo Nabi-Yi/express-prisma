@@ -32,7 +32,7 @@ app.get("/:id", async (req, res) => {
             where: {
                 user_id: Number(req.params.id),
             },
-            select : userResponse,
+            select: userResponse,
         });
         // delete user.password;
         return res.status(200).json(user);
@@ -65,12 +65,47 @@ app.delete("/", async (req, res) => {
             }
         })
         return res.status(200).json(deletedUser);
+
     } catch (error) {
         console.log(error);
         const message = error.meta;
         return res.status(500).json({error: message})
     }
 })
+
+app.patch("/", async (req, res) => {
+    try {
+        const user = await prisma.user.update({
+            where: {
+                provider: "LOCAL"
+            },
+            data: {
+                provider: "NAVER"
+            }
+        });
+        return res.status(200).json(user);
+    } catch (error) {
+
+    }
+})
+
+app.patch("/:id", async (req, res) => {
+    try {
+        //upsert는 없는 경우 생성
+        const user = await prisma.user.update({
+            where: {
+                user_id: Number(req.params.id)
+            },
+            data: {
+                ...req.body
+            },
+            select: userResponse,
+        });
+        return res.status(200).json(user);
+    } catch (error) {
+        return res.status(500).json({error: 'internal server error'});
+    }
+});
 app.listen(3000, () => {
     console.log("server on 3000");
 });
