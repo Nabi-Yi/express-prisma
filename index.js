@@ -9,8 +9,6 @@ app.use(express.json());
 app.use("/post", postRouter);
 app.use("/", userRouter);
 
-
 app.listen(3000, () => {
   console.log("server on 3000");
 });
-
