@@ -1,113 +1,12 @@
 const express = require("express");
 const app = express();
-const {PrismaClient} = require("@prisma/client")
-const {userResponse} = require("./selectUser");
+const { PrismaClient } = require("@prisma/client");
+const { userResponse } = require("./selectUser");
+const userRouter = require("./router/user");
 
-const prisma = new PrismaClient();
 app.use(express.json());
-app.get("/", async (req, res) => {
-    try {
-        const page = req.query.page;
-        //최대 페이지 수
-        const [users, userCount] = await Promise.all([
-            await prisma.user.findMany({
-                take: 12,
-                skip: 12 * (page - 1),
-                orderBy: {
-                    user_id: 'desc',
-                },
-                select: userResponse,
-            }),
-            prisma.user.count(),
-        ]);
-        return res.status(200).json({users, maxPage: Math.ceil(userCount / 12)});
-    } catch (error) {
-        console.log(error);
-    }
-});
-
-app.get("/:id", async (req, res) => {
-    try {
-        const user = await prisma.user.findUnique({
-            where: {
-                user_id: Number(req.params.id),
-            },
-            select: userResponse,
-        });
-        // delete user.password;
-        return res.status(200).json(user);
-    } catch (error) {
-        return res.status(500).json({error: "internal server error"});
-    }
-});
-app.post("/", async (req, res) => {
-    try {
-        const newUser = await prisma.user.create({
-            data: {
-                nickname: req.body.nickname,
-                email: req.body.email,
-                password: req.body.password,
-                provider: req.body.provider,
-                agree: (req.body.agree === "false" || req.body.agree === "0") ? false : true,
-            },
-        });
-        return res.status(201).json({newUser});
-    } catch (error) {
-        console.log(error);
-    }
-})
-
-app.delete("/", async (req, res) => {
-    try {
-        const deletedUser = await prisma.user.delete({
-            where: {
-                user_id: Number(req.body.user_id),
-            }
-        })
-        return res.status(200).json(deletedUser);
-
-    } catch (error) {
-        console.log(error);
-        const message = error.meta;
-        return res.status(500).json({error: message})
-    }
-})
-
-app.patch("/", async (req, res) => {
-    try {
-        const user = await prisma.user.update({
-            where: {
-                provider: "LOCAL"
-            },
-            data: {
-                provider: "NAVER"
-            }
-        });
-        return res.status(200).json(user);
-    } catch (error) {
-
-    }
-})
-
-app.patch("/:id", async (req, res) => {
-    try {
-        //upsert는 없는 경우 생성
-        const user = await prisma.user.update({
-            where: {
-                user_id: Number(req.params.id)
-            },
-            data: {
-                ...req.body
-            },
-            select: userResponse,
-        });
-        return res.status(200).json(user);
-    } catch (error) {
-        return res.status(500).json({error: 'internal server error'});
-    }
-});
+app.use("/", userRouter);
 app.listen(3000, () => {
-    console.log("server on 3000");
+  console.log("server on 3000");
 });
 
-module.exports = {prisma};
